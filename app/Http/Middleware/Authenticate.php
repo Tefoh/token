@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Support\Facades\Crypt;
 
 class Authenticate extends Middleware
 {
@@ -17,5 +18,17 @@ class Authenticate extends Middleware
         if (! $request->expectsJson()) {
             return route('login');
         }
+    }
+
+    public function handle($request, \Closure $next, ...$guards)
+    {
+        if ($request->cookie('token')) {
+            $request->headers->set('authorization', 'Bearer ' . Crypt::decrypt($request->cookie('token'), false));
+            dd($request);
+        }
+
+        $this->authenticate($request, $guards);
+
+        return $next($request);
     }
 }
